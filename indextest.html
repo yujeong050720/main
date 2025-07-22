@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>P2P 링크-체인 데모</title>
+  <style>
+    body      { font-family: sans-serif; max-width: 640px; margin: 40px auto; }
+    #chat li  { margin: 6px 0; }
+    code      { background:#f2f2f2; padding:2px 4px; border-radius:4px; }
+    pre       { background:#fafafa; padding:12px; overflow-x:auto; }
+  </style>
+</head>
+<body>
+  <h2>블록체인-기반 링크 채팅방 🚀</h2>
+
+  <!-- ① 링크 입력 UI -->
+  <input id="linkInput" type="url" size="50" placeholder="https://example.com" />
+  <button id="sendBtn">전송</button>
+
+  <!-- ② 채팅/링크 리스트 -->
+  <h3>메시지</h3>
+  <ul id="chat"></ul>
+
+  <!-- ③ 블록체인 JSON 출력 -->
+  <h3>블록체인 상태</h3>
+  <pre id="chainView"></pre>
+
+  <script type="module">
+    /***********************
+     * 1. Block 정의
+     ***********************/
+    class Block {
+      constructor(index, timestamp, data, previousHash = '') {
+        this.index        = index;
+        this.timestamp    = timestamp;   // ISO-8601
+        this.data         = data;        // { url: "..." }
+        this.previousHash = previousHash;
+        this.hash         = this.calculateHash();
+      }
+      calculateHash() {
+        const msg = this.index + this.previousHash + this.timestamp +
+                    JSON.stringify(this.data);
+
+        let h = 0;
+        for (let i = 0; i < msg.length; i++) {
+          h = ((h << 5) - h) + msg.charCodeAt(i);
+          h |= 0;
+        }
+        return (h >>> 0).toString(16);   // 부호 없는 32-bit → hex
+      }
+    }
+
+    /***********************
+     * 2. Blockchain 정의
+     ***********************/
+    class Blockchain {
+      constructor() { this.chain = [this.createGenesisBlock()]; }
+      createGenesisBlock() {
+        return new Block(0, new Date().toISOString(), { url: 'GENESIS' }, '0');
+      }
+      getLatestBlock() { return this.chain[this.chain.length - 1]; }
+      addBlock(newBlock) {
+        newBlock.previousHash = this.getLatestBlock().hash;
+        newBlock.hash         = newBlock.calculateHash();
+        this.chain.push(newBlock);
+      }
+      isValid() {
+        for (let i = 1; i < this.chain.length; i++) {
+          const c = this.chain[i], p = this.chain[i - 1];
+          if (c.hash !== c.calculateHash()) return false;
+          if (c.previousHash !== p.hash)    return false;
+        }
+        return true;
+      }
+    }
+
+    /***********************
+     * 3. UI & 로직 연결
+     ***********************/
+    const bc        = new Blockchain();
+    const $input    = document.getElementById('linkInput');
+    const $send     = document.getElementById('sendBtn');
+    const $chat     = document.getElementById('chat');
+    const $chainOut = document.getElementById('chainView');
+
+    // 블록체인 JSON & 채팅 새로 고침
+    function refreshViews() {
+      // ① 메시지 리스트
+      $chat.innerHTML = bc.chain
+        .filter(b => b.index !== 0)               // 제네시스 제외
+        .map(b => `<li><a href="${b.data.url}" target="_blank">${b.data.url}</a>
+                   <small><code>#${b.index}</code></small></li>`)
+        .join('');
+      // ② 체인 전체
+      $chainOut.textContent = JSON.stringify(bc, null, 2) +
+        `\n유효성: ${bc.isValid()}`;
+    }
+    refreshViews();
+
+    // ▶ 전송 버튼 클릭
+    $send.addEventListener('click', () => {
+      const url = $input.value.trim();
+      if (!url) return alert('URL을 입력하세요!');
+      // 간단한 URL 유효성 검사
+      try { new URL(url); }
+      catch { return alert('올바른 URL 형식이 아닙니다.'); }
+
+      // 블록 추가
+      bc.addBlock(new Block(
+        bc.chain.length,
+        new Date().toISOString(),
+        { url }
+      ));
+      $input.value = '';
+      refreshViews();
+    });
+
+    // 엔터키로도 전송
+    $input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') $send.click();
+    });
+  </script>
+</body>
+</html>
