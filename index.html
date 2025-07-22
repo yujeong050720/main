@@ -1,163 +1,79 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <title>P2P 링크-블록체인</title>
+  <meta charset="utf-8">
+  <title>블록체인 데모</title>
   <style>
-    body{font-family:sans-serif;max-width:720px;margin:40px auto;padding:0 12px}
-    h2{margin-top:0}
-    #chat li{margin:6px 0}
-    code{background:#f3f3f3;padding:2px 4px;border-radius:4px}
-    pre{background:#fafafa;padding:12px;border-radius:6px;overflow-x:auto}
-    .small{font-size:.85em;color:#777}
+    body {font-family: monospace; max-width: 700px; margin: 40px auto;}
+    pre  {background:#f4f4f4; padding:12px; border-radius:6px; overflow-x:auto;}
   </style>
 </head>
 <body>
-  <h2>🔗 P2P 블록체인 링크 채팅</h2>
-
-  <!-- 입력 UI -->
-  <input id="linkInput" type="url" size="50" placeholder="https://example.com" />
-  <button id="sendBtn">전송</button>
-  <span id="status" class="small"></span>
-
-  <!-- 채팅 목록 -->
-  <h3>메시지</h3>
-  <ul id="chat"></ul>
-
-  <!-- 블록체인 JSON -->
-  <h3>블록체인</h3>
+  <h2>블록체인 상태</h2>
+  <!-- (1) 결과를 뿌려 줄 자리 -->
   <pre id="chainView"></pre>
 
-  <script type="module">
-    /* ──────────────────────────
-     * 0. 외부 모듈(libp2p) 불러오기
-     * ────────────────────────── */
-    import { createLibp2p }  from 'https://unpkg.com/libp2p@0.46.3/dist/esm/index.js';
-    import { webRTC }        from 'https://unpkg.com/@libp2p/webrtc@0.5.0/dist/esm/index.js';
-    import { gossipsub }     from 'https://unpkg.com/@chainsafe/libp2p-gossipsub@14.1.1/dist/esm/index.js';
-    import { noise }         from 'https://unpkg.com/@chainsafe/libp2p-noise@11.0.2/dist/esm/index.js';
-    import { mplex }         from 'https://unpkg.com/@libp2p/mplex@0.20.1/dist/esm/index.js';
-
-    /* ──────────────────────────
-     * 1. Block / Blockchain
-     * ────────────────────────── */
-    class Block{
-      constructor(i, ts, data, prev='0'){
-        this.index=i; this.timestamp=ts;
-        this.data=data; this.previousHash=prev;
-        this.hash=this.calc();
-      }
-      calc(){
-        const s=this.index+this.previousHash+this.timestamp+JSON.stringify(this.data);
-        let h=0; for(let c of s){ h=((h<<5)-h)+c.charCodeAt(0); h|=0; }
-        return (h>>>0).toString(16);
-      }
+  <script>
+  /*******************************************************
+   *  1. Block 클래스 ― 간이 DJB2-32 해시 사용
+   ******************************************************/
+  class Block {
+    constructor(index, timestamp, data, previousHash = '') {
+      this.index = index;                 // 블록 번호
+      this.timestamp = timestamp;         // ISO-8601 문자열
+      this.data = data;                   // 아무 JS 객체
+      this.previousHash = previousHash;   // 바로 앞 블록의 해시
+      this.hash = this.calculateHash();   // 블록 생성 시 해시 1회 계산
     }
-    class Blockchain{
-      constructor(){
-        this.chain=[new Block(0,new Date().toISOString(),{url:'GENESIS'},'0')];
+    calculateHash() {                     // DJB2 변형
+      const msg = this.index + this.previousHash + this.timestamp +
+                  JSON.stringify(this.data);
+      let h = 0;
+      for (let i = 0; i < msg.length; i++) {
+        h = ((h << 5) - h) + msg.charCodeAt(i);
+        h |= 0;                           // signed 32-bit
       }
-      last(){return this.chain[this.chain.length-1];}
-      add(url){
-        const b=new Block(this.chain.length,new Date().toISOString(),{url},this.last().hash);
-        this.chain.push(b); return b;
+      return (h >>> 0).toString(16);      // unsigned → hex
+    }
+  }
+
+  /*******************************************************
+   *  2. Blockchain 클래스
+   ******************************************************/
+  class Blockchain {
+    constructor() { this.chain = [this.createGenesisBlock()]; }
+    createGenesisBlock() {
+      return new Block(0, new Date().toISOString(), 'Genesis Block', '0');
+    }
+    getLatestBlock() { return this.chain[this.chain.length - 1]; }
+    addBlock(newBlock) {
+      newBlock.previousHash = this.getLatestBlock().hash;
+      newBlock.hash = newBlock.calculateHash();
+      this.chain.push(newBlock);
+    }
+    isChainValid() {
+      for (let i = 1; i < this.chain.length; i++) {
+        const cur  = this.chain[i];
+        const prev = this.chain[i - 1];
+        if (cur.hash !== cur.calculateHash()) return false;
+        if (cur.previousHash !== prev.hash)   return false;
       }
-      valid(arr=this.chain){
-        for(let i=1;i<arr.length;i++){
-          const c=arr[i],p=arr[i-1];
-          if(c.hash!==new Block(c.index,c.timestamp,c.data,c.previousHash).hash) return false;
-          if(c.previousHash!==p.hash) return false;
-        }
-        return true;
-      }
+      return true;
     }
+  }
 
-    /* ──────────────────────────
-     * 2. DOM 참조
-     * ────────────────────────── */
-    const $in=document.getElementById('linkInput');
-    const $btn=document.getElementById('sendBtn');
-    const $chat=document.getElementById('chat');
-    const $view=document.getElementById('chainView');
-    const $status=document.getElementById('status');
+  /*******************************************************
+   *  3. 사용 예시
+   ******************************************************/
+  const myCoin = new Blockchain();
+  myCoin.addBlock(new Block(1, new Date().toISOString(), { amount: 4 }));
+  myCoin.addBlock(new Block(2, new Date().toISOString(), { amount: 10 }));
 
-    /* ──────────────────────────
-     * 3. 블록체인 인스턴스
-     * ────────────────────────── */
-    const chain=new Blockchain();
-    refreshViews();
-
-    /* ──────────────────────────
-     * 4. libp2p 설정 & 시작
-     * ────────────────────────── */
-    const node=await createLibp2p({
-      transports:[webRTC()],
-      connectionEncryption:[noise()],
-      streamMuxers:[mplex()],
-      pubsub:gossipsub(),
-      addresses:{listen:[
-        '/dns4/wrtc-star1.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star',
-        '/dns4/wrtc-star2.par.dwebops.pub/tcp/443/wss/p2p-webrtc-star'
-      ]}
-    });
-    await node.start();
-    $status.textContent=`PeerID ${node.peerId.toString().slice(0,8)}…`;
-
-    const TOPIC='linkchain-room';
-    node.pubsub.subscribe(TOPIC);
-
-    /* ──────────────────────────
-     * 5. P2P 메시지 처리
-     * ────────────────────────── */
-    node.addEventListener('peer:connect',()=>{
-      publish({type:'SYNC', chain: chain.chain});
-    });
-
-    node.pubsub.addEventListener('message',evt=>{
-      const msg=JSON.parse(new TextDecoder().decode(evt.detail.data));
-      if(msg.type==='NEW_BLOCK') receiveBlock(msg.block);
-      if(msg.type==='SYNC' && msg.chain?.length>chain.chain.length && chain.valid(msg.chain)){
-        chain.chain=msg.chain; refreshViews();
-      }
-    });
-
-    function publish(obj){
-      node.pubsub.publish(TOPIC,new TextEncoder().encode(JSON.stringify(obj)));
-    }
-
-    function receiveBlock(b){
-      const last=chain.last();
-      const test=new Block(b.index,b.timestamp,b.data,b.previousHash);
-      if(b.previousHash===last.hash && b.hash===test.hash){
-        chain.chain.push(b); refreshViews();
-      }
-    }
-
-    /* ──────────────────────────
-     * 6. UI 이벤트
-     * ────────────────────────── */
-    $btn.onclick=()=>{ if($in.value.trim()) send($in.value.trim()); };
-    $in.onkeydown=e=>{ if(e.key==='Enter') $btn.click(); };
-
-    function send(url){
-      try{ new URL(url);}catch{return alert('URL 형식이 아닙니다');}
-      const blk=chain.add(url);
-      publish({type:'NEW_BLOCK', block: blk});
-      $in.value=''; refreshViews();
-    }
-
-    /* ──────────────────────────
-     * 7. 화면 갱신
-     * ────────────────────────── */
-    function refreshViews(){
-      // 채팅
-      $chat.innerHTML=chain.chain.slice(1).map(b=>
-        `<li><a href="${b.data.url}" target="_blank">${b.data.url}</a>
-         <code>#${b.index}</code></li>`).join('');
-      // 체인 JSON
-      $view.textContent=JSON.stringify(chain.chain,null,2)+
-        `\n유효성: ${chain.valid()}`;
-    }
+  // (4) 화면에 출력
+  const out = document.getElementById('chainView');
+  out.textContent =
+    JSON.stringify(myCoin, null, 2) +
+    '\n체인 유효성: ' + myCoin.isChainValid();
   </script>
 </body>
 </html>
