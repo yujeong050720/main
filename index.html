@@ -20,39 +20,36 @@
   <button id="sendBtn">전송</button>
   <span id="status" class="small"></span>
 
-  <!-- 메시지 목록 -->
+  <!-- 채팅 목록 -->
   <h3>메시지</h3>
   <ul id="chat"></ul>
 
-  <!-- 체인 보기 -->
+  <!-- 블록체인 JSON -->
   <h3>블록체인</h3>
   <pre id="chainView"></pre>
 
   <script type="module">
-    /* ──────────────────────────────────────────
-     *  0. 외부 모듈(libp2p) 로드
-     * ────────────────────────────────────────── */
+    /* ──────────────────────────
+     * 0. 외부 모듈(libp2p) 불러오기
+     * ────────────────────────── */
     import { createLibp2p }  from 'https://unpkg.com/libp2p@0.46.3/dist/esm/index.js';
     import { webRTC }        from 'https://unpkg.com/@libp2p/webrtc@0.5.0/dist/esm/index.js';
     import { gossipsub }     from 'https://unpkg.com/@chainsafe/libp2p-gossipsub@14.1.1/dist/esm/index.js';
     import { noise }         from 'https://unpkg.com/@chainsafe/libp2p-noise@11.0.2/dist/esm/index.js';
     import { mplex }         from 'https://unpkg.com/@libp2p/mplex@0.20.1/dist/esm/index.js';
 
-    /* ──────────────────────────────────────────
-     *  1. Block / Blockchain 클래스
-     * ────────────────────────────────────────── */
+    /* ──────────────────────────
+     * 1. Block / Blockchain
+     * ────────────────────────── */
     class Block{
-      constructor(idx, ts, data, prev='0'){
-        this.index        = idx;
-        this.timestamp    = ts;
-        this.data         = data;      // { url:"..." }
-        this.previousHash = prev;
-        this.hash         = this.calc();
+      constructor(i, ts, data, prev='0'){
+        this.index=i; this.timestamp=ts;
+        this.data=data; this.previousHash=prev;
+        this.hash=this.calc();
       }
       calc(){
-        const s = this.index + this.previousHash + this.timestamp + JSON.stringify(this.data);
-        let h = 0;
-        for(let i=0;i<s.length;i++){ h=((h<<5)-h)+s.charCodeAt(i); h|=0; }
+        const s=this.index+this.previousHash+this.timestamp+JSON.stringify(this.data);
+        let h=0; for(let c of s){ h=((h<<5)-h)+c.charCodeAt(0); h|=0; }
         return (h>>>0).toString(16);
       }
     }
@@ -60,12 +57,12 @@
       constructor(){
         this.chain=[new Block(0,new Date().toISOString(),{url:'GENESIS'},'0')];
       }
-      last(){ return this.chain[this.chain.length-1]; }
-      addLink(url){
+      last(){return this.chain[this.chain.length-1];}
+      add(url){
         const b=new Block(this.chain.length,new Date().toISOString(),{url},this.last().hash);
         this.chain.push(b); return b;
       }
-      isValid(arr=this.chain){
+      valid(arr=this.chain){
         for(let i=1;i<arr.length;i++){
           const c=arr[i],p=arr[i-1];
           if(c.hash!==new Block(c.index,c.timestamp,c.data,c.previousHash).hash) return false;
@@ -75,25 +72,25 @@
       }
     }
 
-    /* ──────────────────────────────────────────
-     *  2. UI 요소
-     * ────────────────────────────────────────── */
+    /* ──────────────────────────
+     * 2. DOM 참조
+     * ────────────────────────── */
     const $in=document.getElementById('linkInput');
     const $btn=document.getElementById('sendBtn');
     const $chat=document.getElementById('chat');
     const $view=document.getElementById('chainView');
     const $status=document.getElementById('status');
 
-    /* ──────────────────────────────────────────
-     *  3. 블록체인 인스턴스
-     * ────────────────────────────────────────── */
-    const chain = new Blockchain();
+    /* ──────────────────────────
+     * 3. 블록체인 인스턴스
+     * ────────────────────────── */
+    const chain=new Blockchain();
     refreshViews();
 
-    /* ──────────────────────────────────────────
-     *  4. libp2p 노드 설정
-     * ────────────────────────────────────────── */
-    const node = await createLibp2p({
+    /* ──────────────────────────
+     * 4. libp2p 설정 & 시작
+     * ────────────────────────── */
+    const node=await createLibp2p({
       transports:[webRTC()],
       connectionEncryption:[noise()],
       streamMuxers:[mplex()],
@@ -109,17 +106,17 @@
     const TOPIC='linkchain-room';
     node.pubsub.subscribe(TOPIC);
 
-    /* ──────────────────────────────────────────
-     *  5. P2P 메시지 처리
-     * ────────────────────────────────────────── */
+    /* ──────────────────────────
+     * 5. P2P 메시지 처리
+     * ────────────────────────── */
     node.addEventListener('peer:connect',()=>{
       publish({type:'SYNC', chain: chain.chain});
     });
 
     node.pubsub.addEventListener('message',evt=>{
-      const msg = JSON.parse(new TextDecoder().decode(evt.detail.data));
-      if(msg.type==='NEW_BLOCK') handleBlock(msg.block);
-      if(msg.type==='SYNC'      && msg.chain?.length>chain.chain.length && chain.isValid(msg.chain)){
+      const msg=JSON.parse(new TextDecoder().decode(evt.detail.data));
+      if(msg.type==='NEW_BLOCK') receiveBlock(msg.block);
+      if(msg.type==='SYNC' && msg.chain?.length>chain.chain.length && chain.valid(msg.chain)){
         chain.chain=msg.chain; refreshViews();
       }
     });
@@ -128,7 +125,7 @@
       node.pubsub.publish(TOPIC,new TextEncoder().encode(JSON.stringify(obj)));
     }
 
-    function handleBlock(b){
+    function receiveBlock(b){
       const last=chain.last();
       const test=new Block(b.index,b.timestamp,b.data,b.previousHash);
       if(b.previousHash===last.hash && b.hash===test.hash){
@@ -136,28 +133,30 @@
       }
     }
 
-    /* ──────────────────────────────────────────
-     *  6. UI 이벤트
-     * ────────────────────────────────────────── */
-    $btn.onclick = ()=>{ if($in.value.trim()) send($in.value.trim()); };
-    $in.addEventListener('keydown',e=>{ if(e.key==='Enter') $btn.click(); });
+    /* ──────────────────────────
+     * 6. UI 이벤트
+     * ────────────────────────── */
+    $btn.onclick=()=>{ if($in.value.trim()) send($in.value.trim()); };
+    $in.onkeydown=e=>{ if(e.key==='Enter') $btn.click(); };
 
     function send(url){
-      try{ new URL(url); }catch{ return alert('URL 형식이 아닙니다'); }
-      const blk = chain.addLink(url);
+      try{ new URL(url);}catch{return alert('URL 형식이 아닙니다');}
+      const blk=chain.add(url);
       publish({type:'NEW_BLOCK', block: blk});
       $in.value=''; refreshViews();
     }
 
-    /* ──────────────────────────────────────────
-     *  7. 화면 갱신
-     * ────────────────────────────────────────── */
+    /* ──────────────────────────
+     * 7. 화면 갱신
+     * ────────────────────────── */
     function refreshViews(){
-      $chat.innerHTML = chain.chain.slice(1).map(b=>
+      // 채팅
+      $chat.innerHTML=chain.chain.slice(1).map(b=>
         `<li><a href="${b.data.url}" target="_blank">${b.data.url}</a>
          <code>#${b.index}</code></li>`).join('');
-      $view.textContent = JSON.stringify(chain.chain,null,2)+
-        `\n유효성: ${chain.isValid()}`;
+      // 체인 JSON
+      $view.textContent=JSON.stringify(chain.chain,null,2)+
+        `\n유효성: ${chain.valid()}`;
     }
   </script>
 </body>
