@@ -1,0 +1,93 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+새로운 기능 및 개선 사항에 대 한 최신 PowerShell을 설치 하세요! https://aka.ms/PSWindows
+
+PS C:\Users\ido31> npx hardhat node
+Error HH1: You are not inside a Hardhat project.
+
+For more info go to https://hardhat.org/HH1 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31> cd "C:\Users\ido31\OneDrive\Desktop\0818bc\"
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat node
+Error: listen EADDRINUSE: address already in use 127.0.0.1:8545
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at node:net:2206:7
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhostnpx hardhat run scripts/testMessages.js --network localhost
+Error HH309: Repeated parameter --network
+
+For more info go to https://hardhat.org/HH309 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Error HH601: Script scripts/testMessages.js doesn't exist.
+
+For more info go to https://hardhat.org/HH601 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Error HH601: Script scripts/testMessages.js doesn't exist.
+
+For more info go to https://hardhat.org/HH601 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Error HH601: Script scripts/testMessages.js doesn't exist.
+
+For more info go to https://hardhat.org/HH601 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Adding message...
+❌ Error: Error: no matching fragment (operation="fragment", info={ "args": [ "Hello from local Hardhat!" ], "key": "addMessage" }, code=UNSUPPORTED_OPERATION, version=6.15.0)
+    at makeError (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:698:21)
+    at assert (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:719:25)
+    at getFragment (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:270:15)
+    at Proxy.addMessage (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:350:26)
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\testMessages.js:11:25)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5) {
+  code: 'UNSUPPORTED_OPERATION',
+  operation: 'fragment',
+  info: { key: 'addMessage', args: [ 'Hello from local Hardhat!' ] },
+  shortMessage: 'no matching fragment'
+}
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Error: could not decode result data (value="0x", info={ "method": "getMessagesLength", "signature": "getMessagesLength()" }, code=BAD_DATA, version=6.15.0)
+    at makeError (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:698:21)
+    at assert (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:719:25)
+    at Interface.decodeFunctionResult (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\abi\interface.ts:916:15)
+    at staticCallResult (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:346:35)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at staticCall (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:303:24)
+    at Proxy.getMessagesLength (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:351:41)
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\testMessages.js:17:15) {
+  code: 'BAD_DATA',
+  value: '0x',
+  info: { method: 'getMessagesLength', signature: 'getMessagesLength()' },
+  shortMessage: 'could not decode result data'
+}
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+Messages length: 1
+Message[0]: Result(4) [
+  '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+  '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+  '안녕하세요, 로컬 테스트 메시지입니다!',
+  1755562848n
+]
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js --network localhost
+ProviderError: Error: VM Exception while processing transaction: reverted with reason string 'trust score below threshold'
+    at HttpProvider.request (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\hardhat\src\internal\core\providers\http.ts:116:21)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at HardhatEthersSigner.sendTransaction (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\@nomicfoundation\hardhat-ethers\src\signers.ts:181:18)
+    at send (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:313:20)
+    at Proxy.addMessage (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:352:16)
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\testMessages.js:14:3)
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/testMessages.js
+Compiled 1 Solidity file successfully (evm target: paris).
+Error: could not decode result data (value="0x", info={ "method": "getMessagesLength", "signature": "getMessagesLength()" }, code=BAD_DATA, version=6.15.0)
+    at makeError (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:698:21)
+    at assert (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\utils\errors.ts:719:25)
+    at Interface.decodeFunctionResult (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\abi\interface.ts:916:15)
+    at staticCallResult (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:346:35)
+    at staticCall (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:303:24)
+    at Proxy.getMessagesLength (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\ethers\src.ts\contract\contract.ts:351:41)
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\testMessages.js:17:15) {
+  code: 'BAD_DATA',
+  value: '0x',
+  info: { method: 'getMessagesLength', signature: 'getMessagesLength()' },
+  shortMessage: 'could not decode result data'
+}
+PS C:\Users\ido31\OneDrive\Desktop\0818bc>
