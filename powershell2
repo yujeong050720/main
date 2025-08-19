@@ -1,0 +1,68 @@
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+새로운 기능 및 개선 사항에 대 한 최신 PowerShell을 설치 하세요! https://aka.ms/PSWindows
+
+PS C:\Users\ido31> cd "C:\Users\ido31\OneDrive\Desktop\0818bc\"
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+Error HH601: Script scripts/deploy.js doesn't exist.
+
+For more info go to https://hardhat.org/HH601 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+Downloading compiler 0.8.28
+Warning: SPDX license identifier not provided in source file. Before publishing, consider adding a comment containing "SPDX-License-Identifier: <SPDX-License>" to each source file. Use "SPDX-License-Identifier: UNLICENSED" for non-open-source code. Please see https://spdx.org for more information.
+--> contracts/TrustedChat.sol
+
+
+Warning: Source file does not specify required compiler version! Consider adding "pragma solidity ^0.8.28;"
+--> contracts/TrustedChat.sol
+
+
+Compiled 2 Solidity files successfully (evm target: paris).
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+Deploying TrustedChat contract...
+❌ Deployment failed: HardhatError: HH700: Artifact for contract "TrustedChat" not found.
+    at Artifacts._handleWrongArtifactForContractName (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\hardhat\src\internal\artifacts.ts:721:11)
+    at Artifacts._getArtifactPathFromFiles (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\hardhat\src\internal\artifacts.ts:852:19)
+    at Artifacts._getArtifactPath (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\hardhat\src\internal\artifacts.ts:516:21)
+    at Artifacts.readArtifact (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\hardhat\src\internal\artifacts.ts:71:26)
+    at getContractFactory (C:\Users\ido31\OneDrive\Desktop\0818bc\node_modules\@nomicfoundation\hardhat-ethers\src\internal\helpers.ts:120:22)
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\deploy.js:6:23)
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat compile
+Nothing to compile
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat compile
+Nothing to compile
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat compile
+Error HH606: The project cannot be compiled, see reasons below.
+
+The Solidity version pragma statement in these files doesn't match any of the configured compilers in your config. Change the pragma or configure additional compiler versions in your hardhat config.
+
+  * contracts/Lock.sol (^0.8.28)
+
+To learn more, run the command again with --verbose
+
+Read about compiler configuration at https://hardhat.org/config
+
+
+For more info go to https://hardhat.org/HH606 or run Hardhat with --show-stack-traces
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat compile
+Compiled 1 Solidity file successfully (evm target: paris).
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+Deploying TrustedChat contract...
+❌ Deployment failed: TypeError: chat.deployed is not a function
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\deploy.js:10:14)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+PS C:\Users\ido31\OneDrive\Desktop\0818bc>  npx hardhat run scripts/deploy.js --network localhost
+Deploying TrustedChat contract...
+✅ TrustedChat deployed to: undefined
+Deployer address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+❌ Deployment failed: TypeError: accounts[0].getBalance is not a function
+    at main (C:\Users\ido31\OneDrive\Desktop\0818bc\scripts\deploy.js:13:55)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+PS C:\Users\ido31\OneDrive\Desktop\0818bc> npx hardhat run scripts/deploy.js --network localhost
+Deploying TrustedChat contract...
+✅ TrustedChat deployed to: 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+Deployer address: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+Deployer balance: 9999994981010721617746
+PS C:\Users\ido31\OneDrive\Desktop\0818bc>
